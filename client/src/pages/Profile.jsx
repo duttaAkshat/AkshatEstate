@@ -16,6 +16,7 @@ import {
   updateUserSuccess,
 } from "../redux/user/userSlice";
 import { useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 
 export default function Profile() {
   const { currentUser, loading, error } = useSelector((state) => state.user);
@@ -153,15 +154,21 @@ export default function Profile() {
         {/* <button className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">
           {loading ? "LOADING..." : "UPDATE"}
         </button> */}
+        <Link
+          to={"/create-listing"}
+          className="bg-green-700 text-white p-3 rounded-lg uppercase text-center hover:opacity-95"
+        >
+          Create Listing
+        </Link>
+        <button
+          onClick={handleSignout}
+          className="bg-red-600 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80"
+        >
+          Sign out
+        </button>
       </form>
 
-      <button
-        onClick={handleSignout}
-        className=" mt-5 self-center bg-red-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
-      >
-        Sign out
-      </button>
-      <p className="text-red-700 mt-5">{error ? error.message : ""}</p>
+      <p className="text-red-600 mt-5">{error ? error.message : ""}</p>
       <p className="text-green-700 mt-5">
         {updateSuccess ? "User updated successfully" : ""}
       </p>

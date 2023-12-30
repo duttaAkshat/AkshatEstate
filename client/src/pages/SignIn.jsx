@@ -71,16 +71,16 @@ export default function SignIn() {
         >
           {loading ? "Loading..." : "Sign In"}
         </button>
-        <OAuth/>
+        <OAuth />
       </form>
 
-      <div className="flex gap-2 mt-5">
+      <div className="flex gap-2 mt-5 text-xl">
         <p>Dont have an account?</p>
         <Link to="/sign-up">
-          <span className="text-blue-700">Sign up</span>
+          <span className="text-blue-700 text-xl">Sign up</span>
         </Link>
       </div>
-      {error && <p className="text-red-500 mt-5">{error}</p>}
+      {/* {error && <p className="text-red-500 mt-5">{error}</p>} */}
     </div>
   );
 }
