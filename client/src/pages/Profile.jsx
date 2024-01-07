@@ -26,7 +26,9 @@ export default function Profile() {
   const [fileUploadError, setFileUploadError] = useState(false);
   const [formData, setFormData] = useState({});
   const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [showListingError, setShowListingError] = useState(false);
   const dispatch = useDispatch();
+  const [userListings, setUserListings] = useState([]);
 
   const handleSignout = async () => {
     try {
@@ -39,7 +41,7 @@ export default function Profile() {
       }
       dispatch(signOutUserSuccess(data));
     } catch (error) {
-      dispatch(signOutUserFailure(data.message));
+      dispatch(signOutUserFailure(error.message));
     }
   };
 
@@ -74,8 +76,46 @@ export default function Profile() {
     }
   }, [file]);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+  const handleChange = async (e) => {
+    if (e.target.id === "avatar") {
+      const file = e.target.files[0];
+
+      const storage = getStorage(app);
+      const fileName = new Date().getTime() + file.name;
+      const storageRef = ref(storage, fileName);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      try {
+        await uploadTask;
+
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        setFormData({ ...formData, avatar: downloadURL });
+
+        // Update backend directly
+        const updateRes = await fetch(`/api/user/update/${currentUser._id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...formData, avatar: downloadURL }),
+        });
+
+        const updateData = await updateRes.json();
+
+        if (updateData.success === false) {
+          dispatch(updateUserFailure(updateData.message));
+          return;
+        }
+
+        dispatch(updateUserSuccess(updateData));
+        setUpdateSuccess(true);
+      } catch (error) {
+        setFileUploadError(true);
+        console.error("Error uploading image:", error);
+      }
+    } else {
+      setFormData({ ...formData, [e.target.id]: e.target.value });
+    }
   };
 
   const handleFileUpload = (file) => {
@@ -96,10 +136,25 @@ export default function Profile() {
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) =>
-          setFormData({ ...formData, avatar: downloadURL })
+          setFormData((prevState) => ({ ...prevState, avatar: downloadURL }))
         );
       }
     );
+  };
+
+  const handleShowListings = async () => {
+    try {
+      setShowListingError(false);
+      const res = await fetch(`/api/user/listings/${currentUser._id}`);
+      const data = await res.json();
+      if (data.success === false) {
+        setShowListingError(true);
+        return;
+      }
+      setUserListings(data);
+    } catch (error) {
+      setShowListingError(true);
+    }
   };
 
   return (
@@ -119,6 +174,18 @@ export default function Profile() {
           alt=""
           className="rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2"
         />
+        <input
+          onChange={handleChange}
+          type="file"
+          id="avatar" // Make sure the id is set to "avatar"
+          ref={fileRef}
+          hidden
+          accept="image/*"
+        ></input>
+        <p className="text-sm self-center text-black">
+          Click on the avatar to update it
+        </p>
+
         <p className="text-sm self-center">
           {fileUploadError ? (
             <span className="text-red-700">Error uploading Image</span>
@@ -172,6 +239,43 @@ export default function Profile() {
       <p className="text-green-700 mt-5">
         {updateSuccess ? "User updated successfully" : ""}
       </p>
+      <button onClick={handleShowListings} className="text-green-700 w-full">
+        Show Listings
+      </button>
+      <p className="text-red-700 mt-5">
+        {showListingError ? "Error showing listings" : ""}
+      </p>
+
+      {userListings && userListings.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <h1 className="text-center mt-7 text-2xl font-semibold">
+            Your Listings
+          </h1>
+          {userListings.map((listing) => (
+            <div
+              key={listing._id}
+              className=" gap-4 border rounded-lg p-3 flex justify-between items-center"
+            >
+              <Link to={`/listing/${listing._id}`}>
+                <img
+                  className="h-16 w-16 object-contain"
+                  src={listing.imageUrls[0]}
+                />
+              </Link>
+              <Link
+                className="text-slate-700 font-semibold flex-1 hover:underline truncate "
+                to={`/listing/${listing._id}`}
+              >
+                <p>{listing.name}</p>
+              </Link>
+              <div className="flex flex-col items-center">
+                <button className="text-red-700 uppercase">Delete</button>
+                <button className="text-green-700 uppercase">edit</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
