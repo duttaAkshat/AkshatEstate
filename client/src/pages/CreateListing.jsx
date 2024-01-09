@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 
 export default function CreateListing() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [files, setFiles] = useState([]);
   const { currentUser } = useSelector((state) => state.user);
   const [formData, setFormData] = useState({
@@ -29,7 +29,7 @@ export default function CreateListing() {
   });
 
   const [imageUploadError, setImageUploadError] = useState(false);
-  console.log(formData);
+  // console.log(formData);
 
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(false);
@@ -156,7 +156,7 @@ export default function CreateListing() {
       if (data.success === false) {
         setError(data.message);
       }
-      navigate(`/listing/${data._id}`)
+      navigate(`/listing/${data._id}`);
     } catch (error) {
       setError(error.message);
       setLoading(false);
@@ -284,14 +284,14 @@ export default function CreateListing() {
                 type="number"
                 id="regularPrice"
                 min="0"
-                max="1000000"
+                max="100000000"
                 required
                 onChange={handleChange}
                 value={formData.regularPrice}
               />
               <div className="flex flex-col items-center">
                 <p>Regular Price</p>
-                <span className="text-xs">(₹ / month)</span>
+                {/* <span className="text-xs">(₹ / month)</span> */}
               </div>
             </div>
             {formData.offer && (
@@ -301,14 +301,14 @@ export default function CreateListing() {
                   type="number"
                   id="discountPrice"
                   min="0"
-                  max="1000000"
+                  max="100000000"
                   required
                   onChange={handleChange}
                   value={formData.discountPrice}
                 />
                 <div className="flex flex-col items-center">
                   <p>Discounted Price</p>
-                  <span className="text-xs">(₹ / month)</span>
+                  {/* <span className="text-xs">(₹ / month)</span> */}
                 </div>
               </div>
             )}
@@ -362,7 +362,10 @@ export default function CreateListing() {
                 </button>
               </div>
             ))}
-          <button disabled={loading || uploading} className=" mt-3 p-3 bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
+          <button
+            disabled={loading || uploading}
+            className=" mt-3 p-3 bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
+          >
             {loading ? "Creating..." : "Create listing"}
           </button>
           {error && <p className="text-red-700 text-sm">{error}</p>}
